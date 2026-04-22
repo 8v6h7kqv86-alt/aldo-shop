@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aldo Shop</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+color:white;
+}
+
+header{
+text-align:center;
+padding:20px;
+background:#ff4757;
+}
+
+.container{max-width:1100px;margin:auto;padding:20px}
+
+.products{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
+}
+
+.card{
+background:white;
+color:black;
+border-radius:15px;
+overflow:hidden;
+}
+
+.card img{
+width:100%;
+height:200px;
+object-fit:cover;
+}
+
+.card-body{padding:15px}
+
+.price{color:red;font-weight:bold}
+
+button{
+background:#25D366;
+color:white;
+border:none;
+padding:10px;
+width:100%;
+margin-top:5px;
+border-radius:10px;
+cursor:pointer;
+}
+
+.admin-btn{
+position:fixed;
+bottom:20px;
+right:20px;
+background:black;
+padding:10px 15px;
+border-radius:50px;
+cursor:pointer;
+}
+
+.overlay{
+position:fixed;
+top:0;left:0;right:0;bottom:0;
+background:rgba(0,0,0,0.8);
+display:none;
+justify-content:center;
+align-items:center;
+}
+
+.box{
+background:white;
+color:black;
+padding:20px;
+border-radius:15px;
+width:300px;
+}
+
+input{
+width:100%;
+padding:10px;
+margin:5px 0;
+border-radius:10px;
+border:1px solid #ccc;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>👟 Aldo Shop</h1>
+<p>متجر أحذية + طلب واتساب</p>
+</header>
+
+<div class="container">
+<div class="products" id="products"></div>
+</div>
+
+<!-- admin -->
+<div class="admin-btn" onclick="openLogin()">🔐 Admin</div>
+
+<!-- login -->
+<div class="overlay" id="loginBox">
+<div class="box">
+<h3>تسجيل الدخول</h3>
+<input type="password" id="pass" placeholder="كلمة السر">
+<button onclick="login()">دخول</button>
+<button onclick="closeLogin()" style="background:red">إغلاق</button>
+</div>
+</div>
+
+<!-- admin panel -->
+<div class="overlay" id="adminBox">
+<div class="box">
+<h3>🛠️ لوحة التحكم</h3>
+
+<input id="name" placeholder="اسم المنتج">
+<input id="price" placeholder="السعر">
+
+<!-- 📸 فقط اختيار من المعرض -->
+<input type="file" id="imageFile" accept="image/*">
+
+<button onclick="addProduct()">➕ إضافة</button>
+<button onclick="logout()" style="background:red">خروج</button>
+</div>
+</div>
+
+<script>
+
+let PASSWORD = "admin123";
+
+/* ❌ بلا منتجات جاهزة */
+let products = JSON.parse(localStorage.getItem("products")) || [];
+
+function render(){
+
+if(products.length === 0){
+document.getElementById("products").innerHTML =
+"<h3 style='text-align:center;color:white'>🚫 ما كاين حتى منتج دابا</h3>";
+return;
+}
+
+let html = "";
+
+products.forEach((p,i)=>{
+
+let msg = `أريد شراء: ${p.name} - السعر: ${p.price} DH`;
+let waLink = "https://wa.me/393510798667?text=" + encodeURIComponent(msg);
+
+html += `
+<div class="card">
+<img src="${p.image}">
+<div class="card-body">
+<h3>${p.name}</h3>
+<p class="price">${p.price} DH</p>
+
+<button onclick="window.open('${waLink}','_blank')">
+📱 طلب واتساب
+</button>
+
+</div>
+</div>
+`;
+});
+
+document.getElementById("products").innerHTML = html;
+}
+
+/* 🔐 login */
+function openLogin(){
+document.getElementById("loginBox").style.display="flex";
+}
+
+function closeLogin(){
+document.getElementById("loginBox").style.display="none";
+}
+
+function login(){
+let p = document.getElementById("pass").value;
+
+if(p === PASSWORD){
+document.getElementById("loginBox").style.display="none";
+document.getElementById("adminBox").style.display="flex";
+}else{
+alert("❌ خطأ");
+}
+}
+
+function logout(){
+document.getElementById("adminBox").style.display="none";
+}
+
+/* ➕ add product from gallery */
+function addProduct(){
+
+let name = document.getElementById("name").value;
+let price = document.getElementById("price").value;
+let file = document.getElementById("imageFile").files[0];
+
+if(!name || !price || !file){
+alert("❌ عمر جميع المعلومات");
+return;
+}
+
+let reader = new FileReader();
+
+reader.onload = function(){
+
+products.push({
+name:name,
+price:price,
+image:reader.result
+});
+
+localStorage.setItem("products", JSON.stringify(products));
+
+render();
+
+alert("✅ تمت الإضافة من المعرض");
+};
+
+reader.readAsDataURL(file);
+}
+
+render();
+
+</script>
+
+</body>
+</html>
